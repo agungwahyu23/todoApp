@@ -2,13 +2,14 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Http\Controllers\API\BaseController;
 use App\Models\User;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 
-class AuthController extends Controller
+class AuthController extends BaseController
 {
     public function test() 
     {
@@ -32,19 +33,18 @@ class AuthController extends Controller
             'email' => $request->email,
             'password' => Hash::make($request->password),
         ]);
-        
-        $token = $this->createToken('authToken')->plainTextToken;
-        return response()->json([
-            'access_token' => $token,
-            'user' => $user,
-        ], 201);
+
+        $success['token'] = $user->createToken('todoApp')->accessToken;
+        $success['name'] =  $user->name;
+
+        return $this->sendResponse($success, 'User register successfully.');
     }
 
     public function login(Request $request) 
     {
         $validator = Validator::make($request->all(), [
             'email' => 'required|string|email|max:255',
-            'password' => 'required|string|min:8|confirmed',
+            'password' => 'required',
         ]);
 
         if ($validator->fails()) {
@@ -57,11 +57,10 @@ class AuthController extends Controller
             return response()->json(['message' => 'Invalid login credential'], 401);
         }
 
-        $token = $this->createToken('authToken')->plainTextToken;
-        return response()->json([
-            'access_token' => $token,
-            'user' => $user,
-        ], 200);
+        $success['token'] = $user->createToken('todoApp')->accessToken;
+        $success['name'] =  $user->name;
+
+        return $this->sendResponse($success, 'User login successfully.');
     }
 
     public function logout(Request $request)
